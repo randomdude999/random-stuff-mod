@@ -24,6 +24,7 @@ configuration screen and enable what you want.
 * Change what water freezes into
 * Change what the land is covered in when it snows
 * Make more blocks flammable (and configure their burning/spread speed)
+* Configure the block limit on pistons
 
 ## TODO:
 
