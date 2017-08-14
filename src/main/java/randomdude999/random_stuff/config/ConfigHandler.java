@@ -19,6 +19,7 @@ public class ConfigHandler {
     public static int maxCactusGrowth;
     public static int deadChorusState;
     public static int spongeAbsorbedState;
+    public static int pistonPushLimit;
 
     public static Block obsidianReplacement;
     public static Block cobblestoneReplacement;
@@ -49,6 +50,7 @@ public class ConfigHandler {
     @SuppressWarnings("deprecation")
     public static void syncConfig() {
         initialSyncConfig();
+
         maxCactusGrowth = config.getInt("Max cactus/sugar cane height", Configuration.CATEGORY_GENERAL,
                 3, 0, 256, "Maximum height of cactus / sugar cane. " +
                         "Set to 256 to make them grow infinitely.");
@@ -56,6 +58,9 @@ public class ConfigHandler {
                 false, "Whether to allow chorus fruit to grow infinitely") ? 0 : 5;
         spongeAbsorbedState = config.getBoolean("Never wet sponge", Configuration.CATEGORY_GENERAL,
                 false, "If enabled, sponge won't become wet after contact with water.") ? 0 : 1;
+
+        pistonPushLimit = config.getInt("Maximum piston push limit", Configuration.CATEGORY_GENERAL,
+                12, 0, 4096, "Maximum number of blocks a piston can push.");
 
 
         obsidianReplacement = Block.getBlockFromName(config.getString("Water against lava source reaction",

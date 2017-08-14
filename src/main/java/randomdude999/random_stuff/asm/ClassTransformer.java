@@ -9,13 +9,7 @@ import org.apache.logging.log4j.Level;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
@@ -48,6 +42,7 @@ public class ClassTransformer implements IClassTransformer {
         transformers.put("net.minecraft.world.WorldServer", ClassTransformer::patchWorldServer);
         transformers.put("net.minecraft.block.BlockFire", ClassTransformer::patchFire);
         transformers.put("net.minecraft.block.material.Material", ClassTransformer::patchMaterial);
+        transformers.put("net.minecraft.block.state.BlockPistonStructureHelper", ClassTransformer::patchPistonStructureHelper);
     }
 
     @Override
@@ -202,6 +197,23 @@ public class ClassTransformer implements IClassTransformer {
                 (MethodNode method, AbstractInsnNode node) -> {
                     method.instructions.set(node, new FieldInsnNode(Opcodes.INVOKESTATIC, asmHooks, "getCanBurn", "(Lnet/minecraft/block/material/Material;)Z"));
                     return true;
+                }
+        )));
+    }
+
+    private static int bipushCount = 0; // Needs to be here b/c lambdas can't change values or something
+
+    private static byte[] patchPistonStructureHelper(byte[] basicClass) {
+        MethodSignature sig = new MethodSignature("addBlockLine", "func_177251_a",
+                "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
+
+        bipushCount = 0;
+        return transform(basicClass, Pair.of(sig, combine(
+                (AbstractInsnNode node) -> node.getOpcode() == Opcodes.BIPUSH && ((IntInsnNode)node).operand == 12,
+                (MethodNode method, AbstractInsnNode node) -> {
+                    ++bipushCount;
+                    method.instructions.set(node, new FieldInsnNode(Opcodes.GETSTATIC, configHandler, "pistonPushLimit", "I"));
+                    return bipushCount == 3;
                 }
         )));
     }
